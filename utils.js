@@ -66,45 +66,5 @@ var pickChosen = function(resp, nCommons, nUncommons, nRares, nLands){
     return chosenCards;
 }
 
-
-var nextP = function(i, next, prev, rot){
-    if (rot == 1){
-        return prev.get(i);
-    }
-    else{
-        return next.get(i);
-    }
-}
-
-var previousP = function(i, next, prev, rot){
-    if (rot == 1){
-        return next.get(i);
-    }
-    else{
-        return prev.get(i);
-    }
-}
-
-var allOnes = function(arr){
-    for (i=0; i<arr.length; i++){
-        if (arr[i]==0){
-            return false;
-        }
-    }
-    return true;
-}
-
-var makeRepeatedArray = function(length, value){
-    arr = [];
-    for (i=0; i<length; i++){
-        arr.push(value);
-    }
-    return arr;
-}
-
 exports.sortSet = sortSet;
 exports.pickChosen = pickChosen;
-exports.nextP = nextP;
-exports.previousP = previousP;
-exports.allOnes = allOnes;
-exports.makeRepeatedArray = makeRepeatedArray;

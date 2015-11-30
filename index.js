@@ -26,45 +26,15 @@ app.use(express.static('public'));
 
 var roomList = []; // small list to emit to clients - has {"id": id, "name": name, "settings": {nPlayers: n, ..., nLands: l}} objects inside
 var rooms = {}; // stores all rooms and parameters
-var peopleToRoom = {};  
-
-//Settings
-// var nPlayers = 3;
-// var nCommons = 0;
-// var nUncommons = 0;
-// var nRares = 5;
-// var nLands = 0;
-
-//room internal state
-// var nextMap;
-// var previousMap;
-
-//packs = [{}, {}, {}, {}, {}, {}, {}, {}];
-//numConnected = 0;
-//client_ids = [];
-//started = 0;
-//allDone = 0;
-//roundOfThree = 0;
-// var counter = 0;
-
-// packs = utils.makeRepeatedArray(nPlayers, {});
-// waiting = utils.makeRepeatedArray(nPlayers, 0);
-
-
 
 var nsp = io.of('/my-namespace');
 nsp.on('connection', function(socket){
   console.log('someone connected:');
   console.log(socket.id);
-  console.log(JSON.stringify(peopleToRoom));
   console.log(JSON.stringify(roomList));
-  //client_ids.push(socket.id);
-  peopleToRoom[socket.id] = {room: null};
   socket.emit('room list', roomList);
+  var room = null; //the room that this socket entered
 
-  //numConnected += 1;
-  // var myID = counter;
-  // var packNumber = counter;
   //socket.emit('chat message', 'hi everyone!');
   // socket.on('chat message', function(msg){
   // 	console.log(msg);
@@ -87,8 +57,8 @@ nsp.on('connection', function(socket){
   		name: msg[0],
   		settings: msg[1]
   	};
-  	peopleToRoom[socket.id].room = room_id;
   	rooms[room_id] = new_room;
+    room = rooms[room_id];
   	roomList.push(room_info);
   	nsp.emit('room list', roomList); // to everyone
   	var roomString = String(room_id);
@@ -106,8 +76,8 @@ nsp.on('connection', function(socket){
   		socket.emit('join room failure', "room is in progress");
   	}
   	else{
-	  	peopleToRoom[socket.id].room = msg;
 	  	rooms[msg].clientids.push(socket.id);
+      room = rooms[msg];
 	  	socket.join(String(msg));
 	  	socket.emit('join room success', ""); 		
   	}
@@ -115,59 +85,55 @@ nsp.on('connection', function(socket){
 
   socket.on('start', function(msg){ //when room is allDone, remove room from roomList; 
   	//if room is started but not done, show as in progress on roomList
-	var room_id = peopleToRoom[socket.id].room;
-	rooms[room_id].started ++;
-  	if (rooms[room_id].started == rooms[room_id].settings.nPlayers){
+	room.started ++;
+  	if (room.started == room.settings.nPlayers){
   		//initialize waiting array
-  		rooms[room_id].initialize();
+  		room.initialize();
   		//initialize client id to next client id maps
-  		rooms[room_id].initializeRandomMaps();
-  		for (i=0; i<rooms[room_id].settings.nPlayers; i++){
-		  	nsp.to(rooms[room_id].clientids[i]).emit('round start', "");
+  		room.initializeRandomMaps();
+  		for (i=0; i<room.settings.nPlayers; i++){
+		  	nsp.to(room.clientids[i]).emit('round start', "");
   		}  		
 	}
   });
 
   socket.on('round start ack', function(msg){
-  	var room_id = peopleToRoom[socket.id].room;
-  	var cards = utils.pickChosen(resp, rooms[room_id].settings.nCommons, rooms[room_id].settings.nUncommons, rooms[room_id].settings.nRares, rooms[room_id].settings.nLands);
-  	rooms[room_id].packs[socket.id] = cards;
+  	var cards = utils.pickChosen(resp, room.settings.nCommons, room.settings.nUncommons, room.settings.nRares, room.settings.nLands);
+  	room.packs[socket.id] = cards;
   	socket.emit('first pack', cards);
   	socket.emit('identifier', socket.id);
   });
 
   socket.on('card selected', function(msg){
-  	var room_id = peopleToRoom[socket.id].room;
-  	next_client = rooms[room_id].getNextP(socket.id);
-  	current_pack_client_id = rooms[room_id].clientToPackClientid[socket.id];
-  	rooms[room_id].packs[current_pack_client_id].splice(msg, 1);
+  	next_client = room.getNextP(socket.id);
+  	current_pack_client_id = room.clientToPackClientid[socket.id];
+  	room.packs[current_pack_client_id].splice(msg, 1);
 
-  	if (rooms[room_id].packs[current_pack_client_id].length>0){//if the pack is not empty
+  	if (room.packs[current_pack_client_id].length>0){//if the pack is not empty
   		console.log("sending to client: " + String(next_client) + " pack client id: " + String(current_pack_client_id));
-	  	nsp.to(next_client).emit('new pack', rooms[room_id].packs[current_pack_client_id]);
-	  	rooms[room_id].waiting[next_client] = 0;	
-	}
+	  	nsp.to(next_client).emit('new pack', room.packs[current_pack_client_id]);
+	  	room.waiting[next_client] = 0;	
+	  }
   	console.log("on Card Selected");
-  	console.log(JSON.stringify(rooms[room_id].waiting));
-  	rooms[room_id].setPackToPrevious(socket.id);//packNumber = utils.previousP(packNumber, nextMap, previousMap, roundOfThree);
+  	console.log(JSON.stringify(room.waiting));
+  	room.setPackToPrevious(socket.id);//packNumber = utils.previousP(packNumber, nextMap, previousMap, roundOfThree);
   });
 
   socket.on('waiting', function(msg){
-  	var room_id = peopleToRoom[socket.id].room;
-  	rooms[room_id].waiting[socket.id] = 1;
+  	room.waiting[socket.id] = 1;
   	console.log("on Waiting");
-  	console.log(JSON.stringify(rooms[room_id].waiting));
-  	if (rooms[room_id].allWaiting() && rooms[room_id].roundOfThree < 2){
+  	console.log(JSON.stringify(room.waiting));
+  	if (room.allWaiting() && room.roundOfThree < 2){
   		console.log("new round");
-  		rooms[room_id].roundOfThree ++;
-  		rooms[room_id].packs = []
-  		rooms[room_id].initialize(); //reset waiting and clientToPackClientid
-  		for (i=0; i<rooms[room_id].settings.nPlayers; i++){
-		  	nsp.to(rooms[room_id].clientids[i]).emit('round over', "");
+  		room.roundOfThree ++;
+  		room.packs = []
+  		room.initialize(); //reset waiting and clientToPackClientid
+  		for (i=0; i<room.settings.nPlayers; i++){
+		  	nsp.to(room.clientids[i]).emit('round over', "");
   		}
   	}
-  	else if (rooms[room_id].allWaiting() && rooms[room_id].roundOfThree >=2){
-  		rooms[room_id].allDone = true;
+  	else if (room.allWaiting() && room.roundOfThree >=2){
+  		room.allDone = true;
   	}
   	else{
   		//do nothing
@@ -175,10 +141,9 @@ nsp.on('connection', function(socket){
   });
 
   socket.on('round over ack', function(msg){
-  	var room_id = peopleToRoom[socket.id].room;
-  	var cards = utils.pickChosen(resp, rooms[room_id].settings.nCommons, rooms[room_id].settings.nUncommons, rooms[room_id].settings.nRares, rooms[room_id].settings.nLands);
+  	var cards = utils.pickChosen(resp, room.settings.nCommons, room.settings.nUncommons, room.settings.nRares, room.settings.nLands);
   	console.log(JSON.stringify(cards));
-  	rooms[room_id].packs[socket.id] = cards;
+  	room.packs[socket.id] = cards;
   	socket.emit('first pack', cards);
   });
 
