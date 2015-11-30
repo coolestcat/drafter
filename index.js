@@ -90,10 +90,8 @@ nsp.on('connection', function(socket){
   		//initialize waiting array
   		room.initialize();
   		//initialize client id to next client id maps
-  		room.initializeRandomMaps();
-  		for (i=0; i<room.settings.nPlayers; i++){
-		  	nsp.to(room.clientids[i]).emit('round start', "");
-  		}  		
+  		room.initializeRandomMaps();	
+      nsp.to(String(room.id)).emit('round start', "");
 	}
   });
 
@@ -128,9 +126,7 @@ nsp.on('connection', function(socket){
   		room.roundOfThree ++;
   		room.packs = []
   		room.initialize(); //reset waiting and clientToPackClientid
-  		for (i=0; i<room.settings.nPlayers; i++){
-		  	nsp.to(room.clientids[i]).emit('round over', "");
-  		}
+      nsp.to(String(room.id)).emit('round over', "");
   	}
   	else if (room.allWaiting() && room.roundOfThree >=2){
   		room.allDone = true;
