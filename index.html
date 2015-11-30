@@ -1,0 +1,63 @@
+<!doctype html>
+<html ng-app="draftApp" ng-controller="draftCtrl">
+  <head>
+    <title>Draft</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+  </head>
+  <body>
+
+    <div id="page" ng-show="roomEntered">
+      <div id="main">
+        <button id="start" class="btn" onclick="sendStart();">Send</button>
+        <div class="cards" ng-repeat="card in cards track by $index">
+          <img ng-src="{{card.image_url}}" ng-click="removeCards($index);">
+        </div>
+      </div>
+      <div id="leftSide">
+        Client ID: {{identifier}}
+        <br>
+        Pool:
+        <div id="table">
+        <table border="1">
+          <tr class="pool" ng-repeat="card in pool track by $index">
+            <td ng-mouseover="setDisplayPic($index);">{{card.name}}</td>
+          </tr>
+        </table>
+        </div>
+        <div id="cardView">
+          <img ng-src="{{display_pic}}";>
+        </div>
+      </div>
+      <div id="clearingdiv"></div>
+    </div>
+
+    <div id="rooms" ng-show="roomExited">
+      <button id="entered" ng-click="showPage();">Create Room</button>
+      <label for="nPlayers"> Number of Players: </label>
+      <input type="number" ng-model="settings.nPlayers" name="nPlayers" min="2" max="10">
+      <label for="nCommons"> Commons: </label>
+      <input type="number" ng-model="settings.nCommons" name="nCommons" min="0" max="15">
+      <label for="nUncommons"> Uncommons: </label>
+      <input type="number" ng-model="settings.nUncommons" name="nUncommons" min="0" max="15">
+      <label for "nRares"> Rares: </label>
+      <input type="number" ng-model="settings.nRares" name="nRares" min="0" max="15">
+      <label for "nLands"> Lands: </label>
+      <input type="number" ng-model="settings.nLands" name="nLands" min="0" max="15">
+      <label for "room_name"> Room Name: </label>
+      <input type="text" ng-model="newRoomName" name="room_name">
+      <br>
+      <ul>
+        <li ng-repeat="room in rooms track by $index" ng-dblclick="joinRoom($index);">
+          {{room.name}}
+        </li>
+      </ul>
+    </div>
+
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script src="js/queue.js"></script>
+    <script src="js/controllers.js"></script>
+    <script src="js/socket.js"></script>
+  </body>
+</html>
