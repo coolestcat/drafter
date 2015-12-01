@@ -49,11 +49,11 @@ var pickChosen = function(resp, nCommons, nUncommons, nRares, nLands){
     for (var i=0; i<nRares; i++){
         r = Math.floor(Math.random()*8);
         if (r==0){ // mythic - 1 in 8 chance
-            r = r = Math.floor(Math.random()*resp["mythic"].length);
+            r = Math.floor(Math.random()*resp["mythic"].length);
             chosenCards.push(resp.mythic[r]);
         }
         else{
-            r = r = Math.floor(Math.random()*resp["rare"].length);
+            r = Math.floor(Math.random()*resp["rare"].length);
             chosenCards.push(resp.rare[r]);
         }       
     }

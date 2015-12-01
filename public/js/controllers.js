@@ -9,6 +9,7 @@ draftApp.controller('draftCtrl', function ($scope) {
   $scope.display_pic = "http://vignette1.wikia.nocookie.net/magic-thegathering/images/c/c8/Magic_Card_Back.png/revision/latest?cb=20130416121221";
   $scope.roomEntered = false;
   $scope.roomExited = true;
+  $scope.waittime = 10;
   $scope.settings = {
   	nPlayers : 8,
   	nCommons : 10,
@@ -18,36 +19,71 @@ draftApp.controller('draftCtrl', function ($scope) {
   };
   $scope.newRoomName = "New Room!";
   $scope.rooms = [];
+  $scope.timer = null;
+  $scope.timerId = null;
+  $scope.lock = 0;
+
+  $scope.pickRandom = function(){
+    r = Math.floor(Math.random()*$scope.cards.length);
+    $scope.removeCards(r);
+  }
+
+  var countdown = function(){
+    if ($scope.timer == 0){
+      clearTimeout($scope.timerId);
+      console.log("pick Random");
+      $scope.pickRandom();
+    }
+    else{
+      //console.log("subtracting");
+      $scope.timer--;
+      $scope.$apply();
+    }
+  }
+
+  $scope.setTimer = function(seconds){
+    console.log('setTimer called');
+    $scope.timer = seconds;
+    $scope.timerId = setInterval(countdown, 1000);
+  }
 
   $scope.setCardsInitial = function(pack){
+    console.log('setCardsInitial called');
   	//console.log(pack);
   	$scope.cards = pack;
+    $scope.setTimer($scope.waittime);
   	//$scope.cards = ["c","d","e","f"];
-  	console.log($scope.cards);
+  	//console.log($scope.cards);
   	$scope.$apply();
   }
 
-  $scope.setCards = function(pack){
-  	$scope.cards = pack;
-  	console.log($scope.cards);
-  }
-
   $scope.removeCards = function(index){
+    while($scope.lock == 1){
+      setTimeout(100);//wait for lock to be freed
+    }
+    $scope.lock = 1;
+    console.log('remove Cards called');
   	var name = $scope.cards[index].name;
-  	console.log(name);
+    clearTimeout($scope.timerId);
+    $scope.timer = null;
+  	//console.log(name);
   	var socket = io('/my-namespace');
-  	socket.emit('card selected', index);
   	$scope.pool.push($scope.cards[index]);
+    console.log('emptying screen');
   	$scope.cards = [];
   	if ($scope.queue.isEmpty()){
-  		console.log("waiting!");
+  		console.log("card removed, waiting!");
   		$scope.waitingFlag = 1;
   		socket.emit('waiting', 'w');
   	}
   	else{
   		new_pack = $scope.queue.dequeue();
+      console.log('remove cards setting cards:');
   		$scope.cards = new_pack;
+      $scope.setTimer($scope.waittime);
   	}
+    socket.emit('card selected', index);
+    $scope.lock = 0;
   }
 
   $scope.showPage = function(){

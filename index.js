@@ -110,30 +110,30 @@ nsp.on('connection', function(socket){
   	if (room.packs[current_pack_client_id].length>0){//if the pack is not empty
   		console.log("sending to client: " + String(next_client) + " pack client id: " + String(current_pack_client_id));
 	  	nsp.to(next_client).emit('new pack', room.packs[current_pack_client_id]);
-	  	room.waiting[next_client] = 0;	
+	  	room.waiting[next_client] = 0;	//have to set to zero before checking allWaiting because 
+      //otherwise when both players click at the same time, new round is initiated
 	  }
-  	console.log("on Card Selected");
-  	console.log(JSON.stringify(room.waiting));
-  	room.setPackToPrevious(socket.id);//packNumber = utils.previousP(packNumber, nextMap, previousMap, roundOfThree);
+    if (room.allWaiting() && room.roundOfThree < 2){
+      console.log("new round");
+      room.roundOfThree ++;
+      room.packs = []
+      room.initialize(); //reset waiting and clientToPackClientid
+      nsp.to(String(room.id)).emit('round over', "");
+    }
+    else if (room.allWaiting() && room.roundOfThree >=2){
+      room.allDone = true;
+    }
+    else{
+      console.log("on Card Selected");
+      console.log(JSON.stringify(room.waiting));
+      room.setPackToPrevious(socket.id);//packNumber = utils.previousP(packNumber, nextMap, previousMap, roundOfThree);
+    }
   });
 
   socket.on('waiting', function(msg){
-  	room.waiting[socket.id] = 1;
+  	room.waiting[socket.id] = 1; //set the waiting of socketid to 1
   	console.log("on Waiting");
   	console.log(JSON.stringify(room.waiting));
-  	if (room.allWaiting() && room.roundOfThree < 2){
-  		console.log("new round");
-  		room.roundOfThree ++;
-  		room.packs = []
-  		room.initialize(); //reset waiting and clientToPackClientid
-      nsp.to(String(room.id)).emit('round over', "");
-  	}
-  	else if (room.allWaiting() && room.roundOfThree >=2){
-  		room.allDone = true;
-  	}
-  	else{
-  		//do nothing
-  	}
   });
 
   socket.on('round over ack', function(msg){
@@ -188,11 +188,17 @@ allDone
 Next Steps:
 Add rooms for clients to be able to join
 Add settings
+
+Draw Sequence Diagram
+Fix Error - pack.splice undefined?
+Angular apply - esp. at the very end
+
 Add Bots
 Timeout (30 Seconds?)
 Deal with Disconnects
 Have server keep track of each client's pool
-Cookies (auth, restore state if closed window)
+Restore state if closed window
+Cookies (auth)
 Add set selector (that all clients and the server can see)
 Make Front End Pretty
 Add passwords to rooms
