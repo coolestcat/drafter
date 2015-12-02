@@ -85,17 +85,19 @@ nsp.on('connection', function(socket){
 
   socket.on('start', function(msg){ //when room is allDone, remove room from roomList; 
   	//if room is started but not done, show as in progress on roomList
-	room.started ++;
+	  console.log('[start]');
+    room.started ++;
   	if (room.started == room.settings.nPlayers){
   		//initialize waiting array
   		room.initialize();
   		//initialize client id to next client id maps
   		room.initializeRandomMaps();	
       nsp.to(String(room.id)).emit('round start', "");
-	}
+	  }
   });
 
   socket.on('round start ack', function(msg){
+    console.log('[round start ack]');
   	var cards = utils.pickChosen(resp, room.settings.nCommons, room.settings.nUncommons, room.settings.nRares, room.settings.nLands);
   	room.packs[socket.id] = cards;
   	socket.emit('first pack', cards);
@@ -103,12 +105,19 @@ nsp.on('connection', function(socket){
   });
 
   socket.on('card selected', function(msg){
+    console.log('[card selected]');
   	next_client = room.getNextP(socket.id);
   	current_pack_client_id = room.clientToPackClientid[socket.id];
-  	room.packs[current_pack_client_id].splice(msg, 1);
+    //console.log(current_pack_client_id);
+    try{
+      room.packs[current_pack_client_id].splice(msg, 1);
+    }
+    catch(err){
+      return;
+    }
 
   	if (room.packs[current_pack_client_id].length>0){//if the pack is not empty
-  		console.log("sending to client: " + String(next_client) + " pack client id: " + String(current_pack_client_id));
+  		//console.log("sending to client: " + String(next_client) + " pack client id: " + String(current_pack_client_id));
 	  	nsp.to(next_client).emit('new pack', room.packs[current_pack_client_id]);
 	  	room.waiting[next_client] = 0;	//have to set to zero before checking allWaiting because 
       //otherwise when both players click at the same time, new round is initiated
@@ -116,7 +125,7 @@ nsp.on('connection', function(socket){
     if (room.allWaiting() && room.roundOfThree < 2){
       console.log("new round");
       room.roundOfThree ++;
-      room.packs = []
+      room.packs = [];
       room.initialize(); //reset waiting and clientToPackClientid
       nsp.to(String(room.id)).emit('round over', "");
     }
@@ -124,21 +133,23 @@ nsp.on('connection', function(socket){
       room.allDone = true;
     }
     else{
-      console.log("on Card Selected");
-      console.log(JSON.stringify(room.waiting));
+      //console.log("on Card Selected");
+      //console.log(JSON.stringify(room.waiting));
       room.setPackToPrevious(socket.id);//packNumber = utils.previousP(packNumber, nextMap, previousMap, roundOfThree);
     }
   });
 
   socket.on('waiting', function(msg){
+    console.log('[waiting]');
   	room.waiting[socket.id] = 1; //set the waiting of socketid to 1
-  	console.log("on Waiting");
-  	console.log(JSON.stringify(room.waiting));
+  	//console.log("on Waiting");
+  	//console.log(JSON.stringify(room.waiting));
   });
 
   socket.on('round over ack', function(msg){
+    console.log('[round over ack]');
   	var cards = utils.pickChosen(resp, room.settings.nCommons, room.settings.nUncommons, room.settings.nRares, room.settings.nLands);
-  	console.log(JSON.stringify(cards));
+  	//console.log(JSON.stringify(cards));
   	room.packs[socket.id] = cards;
   	socket.emit('first pack', cards);
   });
@@ -191,7 +202,8 @@ Add settings
 
 Draw Sequence Diagram
 Fix Error - pack.splice undefined?
-Angular apply - esp. at the very end
+Fix Error - Angular apply at the very end (clear screen)?
+Remove hacky try/catches
 
 Add Bots
 Timeout (30 Seconds?)

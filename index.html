@@ -10,7 +10,7 @@
       <div id="main">
         <button id="start" class="btn" onclick="sendStart();">Send</button>
         <div class="cards" ng-repeat="card in cards track by $index">
-          <img ng-src="{{card.image_url}}" ng-click="removeCards($index);">
+          <img ng-src="{{card.image_url}}" ng-click="passIndex($index);">
         </div>
       </div>
       <div id="leftSide">

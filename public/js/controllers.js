@@ -49,19 +49,20 @@ draftApp.controller('draftCtrl', function ($scope) {
 
   $scope.setCardsInitial = function(pack){
     console.log('setCardsInitial called');
-  	//console.log(pack);
   	$scope.cards = pack;
-    $scope.setTimer($scope.waittime);
-  	//$scope.cards = ["c","d","e","f"];
-  	//console.log($scope.cards);
-  	$scope.$apply();
+  	$scope.$digest();
+  }
+
+  $scope.passIndex = function(index){
+    var x = index;
+    $scope.removeCards(x);
   }
 
   $scope.removeCards = function(index){
-    while($scope.lock == 1){
-      setTimeout(100);//wait for lock to be freed
-    }
-    $scope.lock = 1;
+    // while($scope.lock == 1){
+    //   setTimeout(100);//wait for lock to be freed
+    // }
+    // $scope.lock = 1;
     console.log('remove Cards called');
   	var name = $scope.cards[index].name;
     clearTimeout($scope.timerId);
@@ -69,21 +70,27 @@ draftApp.controller('draftCtrl', function ($scope) {
   	//console.log(name);
   	var socket = io('/my-namespace');
   	$scope.pool.push($scope.cards[index]);
-    console.log('emptying screen');
   	$scope.cards = [];
+    try{
+      $scope.$digest();
+    }
+    catch(err){
+    }
+    
   	if ($scope.queue.isEmpty()){
   		console.log("card removed, waiting!");
   		$scope.waitingFlag = 1;
   		socket.emit('waiting', 'w');
+      socket.emit('card selected', index);
   	}
   	else{
   		new_pack = $scope.queue.dequeue();
       console.log('remove cards setting cards:');
   		$scope.cards = new_pack;
       $scope.setTimer($scope.waittime);
+      socket.emit('card selected', index);
   	}
-    socket.emit('card selected', index);
-    $scope.lock = 0;
+    // $scope.lock = 0;
   }
 
   $scope.showPage = function(){

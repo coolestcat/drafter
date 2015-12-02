@@ -13,8 +13,10 @@ var sendStart = function(){
 socket.on('first pack', function(msg){
   var appElement = document.querySelector('[ng-app=draftApp]');
   var $scope = angular.element(appElement).scope();
+  //$scope.waitingFlag = 0;
   console.log('first pack setting cards:');
   $scope.setCardsInitial(msg); 
+  $scope.setTimer($scope.waittime);
 });
 
 socket.on('identifier', function(msg){
@@ -28,21 +30,22 @@ socket.on('identifier', function(msg){
 socket.on('new pack', function(msg){
   var appElement = document.querySelector('[ng-app=draftApp]');
   var $scope = angular.element(appElement).scope();
-  while($scope.lock == 1){
-    setTimeout(100); //wait for lock to be freed
-  }
-  $scope.lock = 1;
+  // while($scope.lock == 1){
+  //   setTimeout(100); //wait for lock to be freed
+  // }
+  // $scope.lock = 1;
   console.log('new pack called');
   if ($scope.waitingFlag == 1){
     console.log('new pack setting cards:');
     $scope.setCardsInitial(msg); 
+    $scope.setTimer($scope.waittime);
     $scope.waitingFlag = 0;
   }
   else{
     console.log('new pack queued');
     $scope.queue.enqueue(msg);
   }
-  $scope.lock = 0;
+  // $scope.lock = 0;
 });
 
 socket.on('round over', function(msg){
