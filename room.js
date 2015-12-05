@@ -1,3 +1,5 @@
+var Bot = require('./bot');
+
 var shuffle = function (array){
   var currentIndex = array.length, temporaryValue, randomIndex ;
 
@@ -41,8 +43,10 @@ function Room(name, id, settings, clientid) {
 	this.started = 0; // number of players in room who clicked start
 	this.name = name; //name of the room
 	this.id = id; //room id
-	this.settings = settings; //{nPlayers, nCommons, nUncommons, nRares, nLands}
+	this.settings = settings; //{nPlayers, nCommons, nUncommons, nRares, nLands, waittime}
 	this.clientids = []; // keeps track of all clientids in the room
+	this.bots = [];
+	this.bots_connected = 0;
 	this.clientids.push(clientid);
 	this.inprogress = false; //whether the drafting is in progress
 	this.allDone = false; //whether drafting is completely done
@@ -90,6 +94,14 @@ Room.prototype.initializeRandomMaps = function(){
 	console.log("previous:");
 	for (var entry of this.previousMap) {
 	  console.log(entry[0] + " = " + entry[1]);
+	}
+}
+
+Room.prototype.initializeBots = function(){
+	var num_real_players = this.clientids.length;
+	for (i=num_real_players; i<this.settings.nPlayers; i++){
+		var b = new Bot(i, this.id, this.settings.waittime); // order of bots in room.bots doesn't matter (?)
+		this.bots.push(b);
 	}
 }
 

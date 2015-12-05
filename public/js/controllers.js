@@ -16,6 +16,7 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
   	nUncommons : 3,
   	nRares : 1,
   	nLands: 1,
+    waittime: 10,
   };
   $scope.newRoomName = "New Room!";
   $scope.rooms = [];
@@ -99,6 +100,7 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
   $scope.showPage = function(){
   	$scope.roomEntered = true;
   	$scope.roomExited = false;
+    $scope.waittime = $scope.settings.waittime;
     var toEmit = [];
     toEmit.push($scope.newRoomName);
     toEmit.push($scope.settings);
@@ -161,6 +163,7 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
   $socket.on('join room success', function(msg){
     $scope.roomEntered = true;
     $scope.roomExited = false;
+    $scope.waittime = msg;
   });
 
 });

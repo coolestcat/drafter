@@ -46,6 +46,24 @@ nsp.on('connection', function(socket){
   // 	socket.emit('chat message', String(cards));
   // });
 
+  socket.on('req_cid', function(msg){
+    console.log('[req_cid]');
+    room = rooms[msg]; //set room to be the bot's room
+    socket.join(String(msg));
+    socket.emit('cid', socket.id);
+  });
+
+  socket.on('cid_set', function(msg){
+    room.bots_connected ++; 
+    room.clientids.push(socket.id);
+    if (room.bots_connected == room.bots.length){ //when all the bots' clientids are in room.clientids
+      room.initialize();
+      //initialize client id to next client id maps
+      room.initializeRandomMaps();  
+      nsp.to(String(room.id)).emit('round start', "");
+    }
+  });
+
   socket.on('create room', function(msg){
   	console.log(JSON.stringify(msg));
   	//var room_id = roomList.length; //set room_id to be a random unique value, not roomList.length
@@ -79,7 +97,7 @@ nsp.on('connection', function(socket){
 	  	rooms[msg].clientids.push(socket.id);
       room = rooms[msg];
 	  	socket.join(String(msg));
-	  	socket.emit('join room success', ""); 		
+	  	socket.emit('join room success', room.settings.waittime); 		
   	}
   });
 
@@ -87,12 +105,19 @@ nsp.on('connection', function(socket){
   	//if room is started but not done, show as in progress on roomList
 	  console.log('[start]');
     room.started ++;
-  	if (room.started == room.settings.nPlayers){
-  		//initialize waiting array
-  		room.initialize();
-  		//initialize client id to next client id maps
-  		room.initializeRandomMaps();	
-      nsp.to(String(room.id)).emit('round start', "");
+  	//if (room.started == room.settings.nPlayers){ 
+    if (room.started == room.clientids.length){ //allow for bots
+      console.log('enough people joined');
+      if (room.started == room.settings.nPlayers){
+        room.initialize();
+        //initialize client id to next client id maps
+        room.initializeRandomMaps();  
+        nsp.to(String(room.id)).emit('round start', "");
+      }
+      else{
+        room.initializeBots();
+        console.log('done initializing bots');        
+      }
 	  }
   });
 
@@ -114,12 +139,6 @@ nsp.on('connection', function(socket){
     else{
       room.packs[current_pack_client_id].splice(msg, 1);
     }
-    // try{
-    //   room.packs[current_pack_client_id].splice(msg, 1);
-    // }
-    // catch(err){
-    //   return;
-    // }
 
   	if (room.packs[current_pack_client_id].length>0){//if the pack is not empty
   		//console.log("sending to client: " + String(next_client) + " pack client id: " + String(current_pack_client_id));
@@ -204,14 +223,14 @@ allDone
 Next Steps:
 Add rooms for clients to be able to join
 Add settings
+Timeout (30 Seconds?)
+Add Bots
 
 Draw Sequence Diagram
 Fix Error - pack.splice undefined?
 Fix Error - Angular apply at the very end (clear screen)?
 Remove hacky try/catches
 
-Add Bots
-Timeout (30 Seconds?)
 Deal with Disconnects
 Have server keep track of each client's pool
 Restore state if closed window
