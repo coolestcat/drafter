@@ -1,6 +1,6 @@
-var draftApp = angular.module('draftApp', []);
+var draftApp = angular.module('draftApp', ['socket.io']);
 
-draftApp.controller('draftCtrl', function ($scope) {
+draftApp.controller('draftCtrl', function ($scope, $socket) {
   $scope.cards = [];
   $scope.pool = [];
   $scope.queue = new Queue();
@@ -23,6 +23,17 @@ draftApp.controller('draftCtrl', function ($scope) {
   $scope.timerId = null;
   $scope.lock = 0;
 
+  //scope functions
+  $scope.sendStart = function(){
+    $socket.emit('start', "");
+    $("#start").remove();
+    var main = document.getElementById('main');
+    var newdiv = document.createElement('div');
+    newdiv.setAttribute('class', 'spinner');
+    newdiv.setAttribute('id', 'spinner');
+    main.appendChild(newdiv);
+  }
+
   $scope.pickRandom = function(){
     r = Math.floor(Math.random()*$scope.cards.length);
     $scope.removeCards(r);
@@ -35,7 +46,6 @@ draftApp.controller('draftCtrl', function ($scope) {
       $scope.pickRandom();
     }
     else{
-      //console.log("subtracting");
       $scope.timer--;
       $scope.$apply();
     }
@@ -50,7 +60,6 @@ draftApp.controller('draftCtrl', function ($scope) {
   $scope.setCardsInitial = function(pack){
     console.log('setCardsInitial called');
   	$scope.cards = pack;
-  	$scope.$digest();
   }
 
   $scope.passIndex = function(index){
@@ -59,20 +68,15 @@ draftApp.controller('draftCtrl', function ($scope) {
   }
 
   $scope.removeCards = function(index){
-    // while($scope.lock == 1){
-    //   setTimeout(100);//wait for lock to be freed
-    // }
-    // $scope.lock = 1;
     console.log('remove Cards called');
   	var name = $scope.cards[index].name;
     clearTimeout($scope.timerId);
     $scope.timer = null;
   	//console.log(name);
-  	var socket = io('/my-namespace');
   	$scope.pool.push($scope.cards[index]);
   	$scope.cards = [];
     try{
-      $scope.$digest();
+      $scope.$digest();//for some reason the last removeCards called never applies...
     }
     catch(err){
     }
@@ -80,17 +84,16 @@ draftApp.controller('draftCtrl', function ($scope) {
   	if ($scope.queue.isEmpty()){
   		console.log("card removed, waiting!");
   		$scope.waitingFlag = 1;
-  		socket.emit('waiting', 'w');
-      socket.emit('card selected', index);
+  		$socket.emit('waiting', 'w');
+      $socket.emit('card selected', index);
   	}
   	else{
   		new_pack = $scope.queue.dequeue();
       console.log('remove cards setting cards:');
   		$scope.cards = new_pack;
       $scope.setTimer($scope.waittime);
-      socket.emit('card selected', index);
+      $socket.emit('card selected', index);
   	}
-    // $scope.lock = 0;
   }
 
   $scope.showPage = function(){
@@ -99,7 +102,7 @@ draftApp.controller('draftCtrl', function ($scope) {
     var toEmit = [];
     toEmit.push($scope.newRoomName);
     toEmit.push($scope.settings);
-  	socket.emit('create room', toEmit);
+  	$socket.emit('create room', toEmit);
   }
 
   $scope.setDisplayPic = function(index){
@@ -107,7 +110,57 @@ draftApp.controller('draftCtrl', function ($scope) {
   }
 
   $scope.joinRoom = function(index){
-  	socket.emit('join room', $scope.rooms[index].id);
+  	$socket.emit('join room', $scope.rooms[index].id);
   }
+
+  //socket functions
+  $socket.on('room list', function(msg){
+    $scope.rooms = msg;
+    console.log(JSON.stringify($scope.rooms));
+  });
+
+  $socket.on('first pack', function(msg){
+    console.log('first pack setting cards:');
+    $scope.setCardsInitial(msg); 
+    $scope.setTimer($scope.waittime);
+  });
+
+  $socket.on('identifier', function(msg){
+    $scope.identifier = msg;
+    console.log(msg);    
+  });
+
+  $socket.on('new pack', function(msg){
+    console.log('new pack called');
+    if ($scope.waitingFlag == 1){
+      console.log('new pack setting cards:');
+      $scope.setCardsInitial(msg); 
+      $scope.setTimer($scope.waittime);
+      $scope.waitingFlag = 0;
+    }
+    else{
+      console.log('new pack queued');
+      $scope.queue.enqueue(msg);
+    }
+  });
+
+  $socket.on('round over', function(msg){
+    $scope.waitingFlag = 0;
+    $socket.emit('round over ack', "");
+  });
+
+  $socket.on('round start', function(msg){
+    $("#spinner").remove();
+    $socket.emit('round start ack', "");
+  });
+
+  $socket.on('join room failure', function(msg){
+    console.log(msg);
+  });
+
+  $socket.on('join room success', function(msg){
+    $scope.roomEntered = true;
+    $scope.roomExited = false;
+  });
 
 });

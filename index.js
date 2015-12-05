@@ -108,13 +108,18 @@ nsp.on('connection', function(socket){
     console.log('[card selected]');
   	next_client = room.getNextP(socket.id);
   	current_pack_client_id = room.clientToPackClientid[socket.id];
-    //console.log(current_pack_client_id);
-    try{
-      room.packs[current_pack_client_id].splice(msg, 1);
-    }
-    catch(err){
+    if (Object.keys(room.packs).length == 0){ // new round has started - ignore this message
       return;
     }
+    else{
+      room.packs[current_pack_client_id].splice(msg, 1);
+    }
+    // try{
+    //   room.packs[current_pack_client_id].splice(msg, 1);
+    // }
+    // catch(err){
+    //   return;
+    // }
 
   	if (room.packs[current_pack_client_id].length>0){//if the pack is not empty
   		//console.log("sending to client: " + String(next_client) + " pack client id: " + String(current_pack_client_id));
@@ -125,7 +130,7 @@ nsp.on('connection', function(socket){
     if (room.allWaiting() && room.roundOfThree < 2){
       console.log("new round");
       room.roundOfThree ++;
-      room.packs = [];
+      room.packs = {};
       room.initialize(); //reset waiting and clientToPackClientid
       nsp.to(String(room.id)).emit('round over', "");
     }
