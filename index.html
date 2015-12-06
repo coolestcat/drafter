@@ -21,6 +21,9 @@
         Pool:
         <div id="table">
         <table border="1">
+          <div id="disconnected" ng-show="disconnectShow">
+            Error - A User Disconnected.
+          </div>
           <tr class="pool" ng-repeat="card in pool track by $index">
             <td ng-mouseover="setDisplayPic($index);">{{card.name}}</td>
           </tr>
@@ -29,6 +32,12 @@
         <div id="cardView">
           <img ng-src="{{display_pic}}";>
         </div>
+      </div>
+      <div id="chatSide">
+        <ul id="messages">
+          <li ng-repeat="chat in chats">{{chat}}</li>
+        </ul>
+        <input ng-model="chattext" id="m" autocomplete="off"/><button id="chatsend" ng-click="sendMessage();">Send</button>
       </div>
       <div id="clearingdiv"></div>
     </div>

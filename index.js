@@ -45,9 +45,18 @@ nsp.on('connection', function(socket){
   // 	var cards = utils.pickChosen(resp);
   // 	socket.emit('chat message', String(cards));
   // });
+  socket.on('chat msg', function(msg){
+    console.log('[chat msg]: ' + msg);
+    nsp.to(String(room.id)).emit('chat received', msg);
+  });
+
+  socket.on('disconnect', function(){
+    nsp.to(String(room.id)).emit('some disconnect', "");
+  });
 
   socket.on('req_cid', function(msg){
     console.log('[req_cid]');
+    console.log('bot cid:' + String(socket.id));
     room = rooms[msg]; //set room to be the bot's room
     socket.join(String(msg));
     socket.emit('cid', socket.id);
@@ -231,6 +240,7 @@ Fix Error - pack.splice undefined?
 Fix Error - Angular apply at the very end (clear screen)?
 Remove hacky try/catches
 
+Chat
 Deal with Disconnects
 Have server keep track of each client's pool
 Restore state if closed window

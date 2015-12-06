@@ -9,7 +9,10 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
   $scope.display_pic = "http://vignette1.wikia.nocookie.net/magic-thegathering/images/c/c8/Magic_Card_Back.png/revision/latest?cb=20130416121221";
   $scope.roomEntered = false;
   $scope.roomExited = true;
+  $scope.disconnectShow = false;
   $scope.waittime = 10;
+  $scope.chats = ["[messages]:"];
+  $scope.chattext = "hello";
   $scope.settings = {
   	nPlayers : 8,
   	nCommons : 10,
@@ -25,6 +28,11 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
   $scope.lock = 0;
 
   //scope functions
+  $scope.sendMessage = function(){
+    $socket.emit('chat msg', $scope.chattext);
+    $scope.chattext = "";
+  }
+
   $scope.sendStart = function(){
     $socket.emit('start', "");
     $("#start").remove();
@@ -116,6 +124,10 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
   }
 
   //socket functions
+  $socket.on('chat received', function(msg){
+    $scope.chats.push(msg);
+  });
+
   $socket.on('room list', function(msg){
     $scope.rooms = msg;
     console.log(JSON.stringify($scope.rooms));
@@ -164,6 +176,10 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
     $scope.roomEntered = true;
     $scope.roomExited = false;
     $scope.waittime = msg;
+  });
+
+  $socket.on('some disconnect', function(msg){
+    $scope.disconnectShow = true;
   });
 
 });
