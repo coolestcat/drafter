@@ -45,6 +45,20 @@ nsp.on('connection', function(socket){
   // 	var cards = utils.pickChosen(resp);
   // 	socket.emit('chat message', String(cards));
   // });
+  socket.on('leave room', function(msg){
+    console.log('[leave room]');
+    for (i=0; i<room.clientids.length; i++){
+      if (room.clientids[i]==socket.id){
+        room.clientids.splice(i,1);
+        break;
+      }
+    }
+    socket.leave(String(room.id));
+    room = null;
+    socket.emit('leave success', ""); 
+  });
+
+
   socket.on('chat msg', function(msg){
     console.log('[chat msg]: ' + msg);
     nsp.to(String(room.id)).emit('chat received', msg);
@@ -234,14 +248,14 @@ Add rooms for clients to be able to join
 Add settings
 Timeout (30 Seconds?)
 Add Bots
-
-Draw Sequence Diagram
-Fix Error - pack.splice undefined?
-Fix Error - Angular apply at the very end (clear screen)?
-Remove hacky try/catches
-
 Chat
 Deal with Disconnects
+
+Draw Sequence Diagram
+Remove hacky try/catches
+
+Back out of room button
+Deal with disconnect by turning player into bot
 Have server keep track of each client's pool
 Restore state if closed window
 Cookies (auth)

@@ -36,11 +36,16 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
   $scope.sendStart = function(){
     $socket.emit('start', "");
     $("#start").remove();
+    $("#leave").remove();
     var main = document.getElementById('main');
     var newdiv = document.createElement('div');
     newdiv.setAttribute('class', 'spinner');
     newdiv.setAttribute('id', 'spinner');
     main.appendChild(newdiv);
+  }
+
+  $scope.sendLeave = function(){
+    $socket.emit('leave room', "");
   }
 
   $scope.pickRandom = function(){
@@ -180,6 +185,11 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
 
   $socket.on('some disconnect', function(msg){
     $scope.disconnectShow = true;
+  });
+
+  $socket.on('leave success', function(msg){//need to make sure server reversed join room before allowing user to join another room
+    $scope.roomEntered = false;
+    $scope.roomExited = true;
   });
 
 });
