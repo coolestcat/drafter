@@ -10,6 +10,7 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
   $scope.roomEntered = false;
   $scope.roomExited = true;
   $scope.disconnectShow = false;
+  $scope.downloadShow = false;
   $scope.waittime = 10;
   $scope.chats = ["[messages]:"];
   $scope.chattext = "hello";
@@ -128,7 +129,17 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
   	$socket.emit('join room', $scope.rooms[index].id);
   }
 
+  $scope.downloadCockatrice = function(){
+    $socket.emit('download', $scope.pool);
+  }
+
   //socket functions
+  $socket.on('download created', function(msg){
+    console.log('download created: ' + String(msg));
+    window.open(msg);
+  });
+
+
   $socket.on('chat received', function(msg){
     $scope.chats.push(msg);
   });
@@ -190,6 +201,10 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
   $socket.on('leave success', function(msg){//need to make sure server reversed join room before allowing user to join another room
     $scope.roomEntered = false;
     $scope.roomExited = true;
+  });
+
+  $socket.on('all done', function(msg){
+    $scope.downloadShow = true;
   });
 
 });

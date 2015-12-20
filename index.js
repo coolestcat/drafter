@@ -178,6 +178,7 @@ nsp.on('connection', function(socket){
     }
     else if (room.allWaiting() && room.roundOfThree >=2){
       room.allDone = true;
+      nsp.to(String(room.id)).emit('all done', "");
     }
     else{
       //console.log("on Card Selected");
@@ -185,6 +186,7 @@ nsp.on('connection', function(socket){
       room.setPackToPrevious(socket.id);//packNumber = utils.previousP(packNumber, nextMap, previousMap, roundOfThree);
     }
   });
+
 
   socket.on('waiting', function(msg){
     console.log('[waiting]');
@@ -200,6 +202,33 @@ nsp.on('connection', function(socket){
   	room.packs[socket.id] = cards;
   	socket.emit('first pack', cards);
   });
+
+
+  //Download card pool in Cockatrice format
+  socket.on('download', function(pool){
+    var poolString = "";
+    poolString = poolString + "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<cockatrice_deck version=\"1\">\n<deckname></deckname>\n<comments></comments>\n<zone name=\"main\">\n";
+    console.log(pool);
+    for (i in pool){
+      card = pool[i];
+      console.log(card["name"]);
+      poolString = poolString + "<card number=\"1\" price=\"0\" name=\"" + card["name"];
+      poolString = poolString + "\"/>\n";
+    }
+
+    poolString = poolString + "</zone></cockatrice_deck>";
+    fileString = "./public/tmp/" + String(socket.id) + ".cod";
+    sendFileString = "tmp/" + String(socket.id) + ".cod";
+    fs.writeFile(fileString, poolString, function(err) {
+        if(err) {
+            return console.log(err);
+        }
+        console.log("The file was saved!");
+    }); 
+
+    socket.emit('download created', sendFileString);
+  });
+
 
 });
 
@@ -250,28 +279,31 @@ Timeout (30 Seconds?)
 Add Bots
 Chat
 Deal with Disconnects
-
-Draw Sequence Diagram
-Remove hacky try/catches
-
 Back out of room button
+Add download button - cockatrice format
+
+
+
 Deal with disconnect by turning player into bot
 Have server keep track of each client's pool
 Restore state if closed window
-Cookies (auth)
+Cookies? (auth)
 Add set selector (that all clients and the server can see)
 Make Front End Pretty
 Add passwords to rooms
 Load from database instead of a different json file for each set
-Add download button - cockatrice format
 Mana curve indicator
 Type count indicator
 Color indicator
 Sealed/other ormats
 Deck builder
 Bot AI
-User accounts (OAuth)
+User accounts/profiles 
+(authenticate with google OAuth)
 Email Deck
+
+//Draw Sequence Diagram
+//Remove hacky try/catches
 
 */
 

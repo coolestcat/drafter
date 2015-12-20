@@ -10,6 +10,7 @@
       <div id="main">
         <button id="start" class="btn" ng-click="sendStart();">Send</button>
         <button id="leave" class="btn" ng-click="sendLeave();">Leave Room</button>
+        <button ng-show="downloadShow" id="download" class="btn" ng-click="downloadCockatrice();">Download</button>
         <div class="cards" ng-repeat="card in cards track by $index">
           <img ng-src="{{card.image_url}}" ng-click="passIndex($index);">
         </div>
@@ -25,9 +26,13 @@
           <div id="disconnected" ng-show="disconnectShow">
             Error - A User Disconnected.
           </div>
+          <div style="height:150px;overflow-y:scroll; position: absolute;
+  top: 0;
+  bottom: 0;">
           <tr class="pool" ng-repeat="card in pool track by $index">
             <td ng-mouseover="setDisplayPic($index);">{{card.name}}</td>
           </tr>
+          </div>
         </table>
         </div>
         <div id="cardView">
@@ -42,7 +47,8 @@
       </div>
       <div id="clearingdiv"></div>
     </div>
-
+    <!-- Invisible iframe -->
+    <iframe id="my_iframe" style="display:none;"></iframe>
     <div id="rooms" ng-show="roomExited">
       <button id="entered" ng-click="showPage();">Create Room</button>
       <label for="nPlayers"> Number of Players: </label>

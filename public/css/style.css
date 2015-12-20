@@ -41,11 +41,6 @@ body { font: 13px Helvetica, Arial; }
 	bottom: 0;
 }
 
-#table{
-	height: 60vh;
-	overflow: auto;
-}
-
 .cards {
     float: left;
 } 
