@@ -65,7 +65,7 @@ nsp.on('connection', function(socket){
   });
 
   socket.on('disconnect', function(){
-    nsp.to(String(room.id)).emit('some disconnect', "");
+    nsp.to(String(room.id)).emit('some disconnect', socket.id);
   });
 
   socket.on('req_cid', function(msg){

@@ -27,6 +27,7 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
   $scope.timer = null;
   $scope.timerId = null;
   $scope.lock = 0;
+  $scope.whodisconnected = null;
 
   //scope functions
   $scope.sendMessage = function(){
@@ -195,6 +196,7 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
   });
 
   $socket.on('some disconnect', function(msg){
+    $scope.whodisconnected = String(msg);
     $scope.disconnectShow = true;
   });
 

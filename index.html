@@ -2,7 +2,7 @@
 <html ng-app="draftApp" ng-controller="draftCtrl">
   <head>
     <title>Drafter</title>
-    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="css/mystyle.css">
   </head>
   <body>
 
@@ -24,7 +24,7 @@
         <div id="table">
         <table border="1">
           <div id="disconnected" ng-show="disconnectShow">
-            Error - A User Disconnected.
+            Error - User {{whodisconnected}} Disconnected.
           </div>
           <div style="height:150px;overflow-y:scroll; position: absolute;
   top: 0;
