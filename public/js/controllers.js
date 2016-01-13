@@ -124,6 +124,7 @@ draftApp.controller('draftCtrl', function ($scope, $socket) {
 
   $scope.setDisplayPic = function(index){
   	$scope.display_pic = $scope.pool[index].image_url;
+    console.log("display pic set");
   }
 
   $scope.joinRoom = function(index){

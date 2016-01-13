@@ -58,7 +58,6 @@ nsp.on('connection', function(socket){
     socket.emit('leave success', ""); 
   });
 
-
   socket.on('chat msg', function(msg){
     console.log('[chat msg]: ' + msg);
     nsp.to(String(room.id)).emit('chat received', msg);
@@ -282,19 +281,20 @@ Deal with Disconnects
 Back out of room button
 Add download button - cockatrice format
 
-
-
+Front end layout
+Mana curve indicator
+Type count indicator
+Color indicator
 Deal with disconnect by turning player into bot
+  -pause everyone else, create bot, add object to room's bots, 
+   replace instances of disconnected cid with new bot's cid,
+   resume everyone else, still show disconnect error
 Have server keep track of each client's pool
 Restore state if closed window
 Cookies? (auth)
 Add set selector (that all clients and the server can see)
-Make Front End Pretty
 Add passwords to rooms
 Load from database instead of a different json file for each set
-Mana curve indicator
-Type count indicator
-Color indicator
 Sealed/other ormats
 Deck builder
 Bot AI

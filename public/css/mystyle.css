@@ -1,0 +1,33 @@
+#leftSide {
+    position:absolute;
+    left:0; bottom: 0; top: 0;
+    width: 300px;
+}
+#main {
+    position: absolute;
+    left:300px; right:200px; bottom:0; top: 0;
+    overflow-y: scroll;
+}
+#chatSide {
+	position: absolute;
+	right:0; bottom:0; top:0;
+	width: 200px;
+}
+#leftSideHeader {
+	position: absolute;
+	left: 0; right:0; top:0; 
+	height: 100px;
+}
+#table{
+	position: absolute;
+	left: 0; right: 0; top: 100px; bottom: 310px;
+	overflow-y: scroll;
+}
+#cardView {
+	position: absolute;
+	left: 0; right: 0; bottom: 0;
+	height: 305px;
+}
+.cards{
+	float:left;
+}
