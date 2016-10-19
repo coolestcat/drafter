@@ -14,6 +14,7 @@ app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
 
+
 //serve static files in public folder
 app.use(express.static('public'));
 
@@ -27,6 +28,7 @@ app.use(express.static('public'));
 var roomList = []; // small list to emit to clients - has {"id": id, "name": name, "settings": {nPlayers: n, ..., nLands: l}} objects inside
 var rooms = {}; // stores all rooms and parameters
 
+
 var nsp = io.of('/my-namespace');
 nsp.on('connection', function(socket){
   console.log('someone connected:');
@@ -34,6 +36,7 @@ nsp.on('connection', function(socket){
   console.log(JSON.stringify(roomList));
   socket.emit('room list', roomList);
   var room = null; //the room that this socket entered
+
 
   //socket.emit('chat message', 'hi everyone!');
   // socket.on('chat message', function(msg){
@@ -268,42 +271,6 @@ clients resets waiting for pack flag to 0, each client sends round over ack,
 server sends everyone new packs, reverse direction
 
 One more round, send everyone new packs, reverse direction
-
-allDone
-
-Next Steps:
-Add rooms for clients to be able to join
-Add settings
-Timeout (30 Seconds?)
-Add Bots
-Chat
-Deal with Disconnects
-Back out of room button
-Add download button - cockatrice format
-
-Front end layout
-Mana curve indicator
-Type count indicator
-Color indicator
-Deal with disconnect by turning player into bot
-  -pause everyone else, create bot, add object to room's bots, 
-   replace instances of disconnected cid with new bot's cid,
-   resume everyone else, still show disconnect error
-Have server keep track of each client's pool
-Restore state if closed window
-Cookies? (auth)
-Add set selector (that all clients and the server can see)
-Add passwords to rooms
-Load from database instead of a different json file for each set
-Sealed/other ormats
-Deck builder
-Bot AI
-User accounts/profiles 
-(authenticate with google OAuth)
-Email Deck
-
-//Draw Sequence Diagram
-//Remove hacky try/catches
 
 */
 
